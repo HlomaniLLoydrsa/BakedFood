@@ -1,0 +1,17 @@
+{
+  "name": "droply",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Droply - Product Drop & Demand Validation Platform",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "seed": "npm run seed --workspace=backend"
+  }
+}

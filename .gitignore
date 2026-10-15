@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Database
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+backend/prisma/dev.db-shm
+backend/prisma/dev.db-wal
+
+# Uploads (user files — not committed)
+backend/uploads/products/*
+backend/uploads/proofs/*
+!backend/uploads/products/.gitkeep
+!backend/uploads/proofs/.gitkeep
+
+# Environment
+backend/.env
+frontend/.env
+.env
+.env.local
+.env.production
+
+# Build output
+dist/
+build/
+frontend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo
+
+# Prisma generated
+!backend/prisma/schema.prisma

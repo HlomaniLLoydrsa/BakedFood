@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         String   @default("admin")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  verifiedPayments Payment[] @relation("VerifiedBy")
+
+  @@map("users")
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+  products  Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String?  @map("image_url")
+  categoryId  String?  @map("category_id")
+  price       Float
+  sellingUnit String   @map("selling_unit")
+  maxQuantity Int?     @map("max_quantity")
+  isAvailable Boolean  @default(true) @map("is_available")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  dropProducts DropProduct[]
+
+  @@map("products")
+}
+
+model Drop {
+  id              String     @id @default(cuid())
+  name            String
+  slug            String     @unique
+  description     String?
+  status          String     @default("DRAFT")
+  opensAt         DateTime   @map("opens_at")
+  closesAt        DateTime   @map("closes_at")
+  allowDelivery   Boolean    @default(true) @map("allow_delivery")
+  allowCollection Boolean    @default(true) @map("allow_collection")
+  allowEft        Boolean    @default(true) @map("allow_eft")
+  allowCash       Boolean    @default(true) @map("allow_cash")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  dropProducts DropProduct[]
+  orders       Order[]
+
+  @@map("drops")
+}
+
+model DropProduct {
+  id          String   @id @default(cuid())
+  dropId      String   @map("drop_id")
+  productId   String   @map("product_id")
+  price       Float
+  maxQuantity Int?     @map("max_quantity")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  drop    Drop    @relation(fields: [dropId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([dropId, productId])
+  @@map("drop_products")
+}
+
+model Order {
+  id               String   @id @default(cuid())
+  orderNumber      String   @unique @map("order_number")
+  dropId           String   @map("drop_id")
+  customerName     String   @map("customer_name")
+  phone            String
+  email            String?
+  fulfilmentMethod String   @map("fulfilment_method")
+  deliveryAddress  String?  @map("delivery_address")
+  totalAmount      Float    @map("total_amount")
+  paymentMethod    String   @map("payment_method")
+  paymentStatus    String   @default("AWAITING_PAYMENT") @map("payment_status")
+  orderStatus      String   @default("PENDING") @map("order_status")
+  cancelReason     String?  @map("cancel_reason")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  drop       Drop        @relation(fields: [dropId], references: [id])
+  orderItems OrderItem[]
+  payment    Payment?
+  review     Review?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id                  String @id @default(cuid())
+  orderId             String @map("order_id")
+  productId           String @map("product_id")
+  productNameSnapshot String @map("product_name_snapshot")
+  sellingUnitSnapshot String @map("selling_unit_snapshot")
+  quantity            Int
+  unitPrice           Float  @map("unit_price")
+  subtotal            Float
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+model Payment {
+  id              String    @id @default(cuid())
+  orderId         String    @unique @map("order_id")
+  paymentMethod   String    @map("payment_method")
+  reference       String?
+  amount          Float
+  proofUrl        String?   @map("proof_url")
+  status          String    @default("AWAITING_PAYMENT")
+  rejectionReason String?   @map("rejection_reason")
+  verifiedById    String?   @map("verified_by")
+  verifiedAt      DateTime? @map("verified_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  order      Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  verifiedBy User?  @relation("VerifiedBy", fields: [verifiedById], references: [id])
+
+  @@map("payments")
+}
+
+model Setting {
+  id    String  @id @default(cuid())
+  key   String  @unique
+  value String?
+
+  @@map("settings")
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  orderId     String   @unique @map("order_id")
+  orderNumber String   @map("order_number")
+  customerName String  @map("customer_name")
+  rating      Int      // 1-5
+  message     String
+  isPublic    Boolean  @default(true) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
