@@ -2,11 +2,18 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
-import { generateSlug, ensureUniqueSlug } from '../lib/slug';
+import { generateSlug } from '../lib/slug';
 
 const router = Router();
 
-const STORE_SLUG_KEY = 'store_slug'; // stored in settings so it persists
+const STORE_SLUG_KEY = 'store_slug';
+
+// ── Generate a unique slug from a name with a short random suffix ─────────
+function generateUniqueSlug(name: string): string {
+  const base = generateSlug(name);
+  const suffix = Math.random().toString(36).slice(2, 6); // e.g. "x7k2"
+  return `${base}-${suffix}`;
+}
 
 // ── Helper: get or create the one persistent drop ────────────────────────
 async function getOrCreateStore() {
@@ -22,7 +29,7 @@ async function getOrCreateStore() {
   }
 
   // Create the store for the first time
-  const slug = await ensureUniqueSlug('store');
+  const slug = generateUniqueSlug('our-store');
   const now = new Date();
   const drop = await prisma.drop.create({
     data: {
@@ -125,13 +132,27 @@ router.put('/', async (req: Request, res: Response) => {
     await syncStoreProducts(store.id);
   }
 
+  // Regenerate slug if name changed
+  const newName = data.name ?? store.name;
+  let newSlug = store.slug;
+  if (data.name && data.name !== store.name) {
+    newSlug = generateUniqueSlug(data.name);
+    // Update the stored slug reference
+    await prisma.setting.upsert({
+      where: { key: STORE_SLUG_KEY },
+      update: { value: newSlug },
+      create: { key: STORE_SLUG_KEY, value: newSlug },
+    });
+  }
+
   const updated = await prisma.drop.update({
     where: { id: store.id },
     data: {
-      name:      data.name      ?? store.name,
+      name:        newName,
+      slug:        newSlug,
       description: data.description !== undefined ? data.description : store.description,
-      opensAt:   newOpens,
-      closesAt:  newCloses,
+      opensAt:     newOpens,
+      closesAt:    newCloses,
       status,
     },
     include: { dropProducts: { include: { product: true } }, _count: { select: { orders: true } } },

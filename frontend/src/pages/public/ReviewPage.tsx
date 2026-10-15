@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Star, CheckCircle, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api, { getErrorMessage } from '../../lib/api';
-import { Order } from '../../types';
 import { PageSpinner } from '../../components/ui/Spinner';
 
 export function ReviewPage() {
@@ -15,12 +14,13 @@ export function ReviewPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const { data: order, isLoading } = useQuery({
-    queryKey: ['order', orderNumber],
+  const { data: eligibility, isLoading } = useQuery({
+    queryKey: ['review-eligible', orderNumber],
     queryFn: async () => {
-      const r = await api.get(`/orders/number/${orderNumber}`);
-      return r.data.order as Order;
+      const r = await api.get(`/reviews/eligible/${orderNumber}`);
+      return r.data as { eligible: boolean; orderStatus: string; customerName: string; alreadyReviewed: boolean };
     },
+    retry: 1,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -40,7 +40,7 @@ export function ReviewPage() {
 
   if (isLoading) return <PageSpinner />;
 
-  if (!order) {
+  if (!eligibility) {
     return (
       <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4">
         <div className="text-center">
@@ -51,7 +51,22 @@ export function ReviewPage() {
     );
   }
 
-  if (order.orderStatus !== 'COMPLETED') {
+  if (eligibility.alreadyReviewed) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4">
+        <div className="text-center max-w-xs">
+          <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Star size={20} className="text-green-500 fill-green-500" />
+          </div>
+          <p className="text-sm font-bold text-stone-900 mb-2">Already reviewed</p>
+          <p className="text-xs text-stone-400 mb-5">You've already submitted a review for this order. Thank you!</p>
+          <Link to="/" className="text-sm text-green-600 font-semibold hover:underline">Go home</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!eligibility.eligible) {
     return (
       <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4">
         <div className="text-center max-w-xs">
@@ -109,7 +124,7 @@ export function ReviewPage() {
 
         {/* Greeting */}
         <div className="text-center py-4">
-          <p className="text-stone-500 text-sm mb-1">Hi <strong className="text-stone-800">{order.customerName.split(' ')[0]}</strong>,</p>
+          <p className="text-stone-500 text-sm mb-1">Hi <strong className="text-stone-800">{eligibility.customerName.split(' ')[0] || 'there'}</strong>,</p>
           <p className="text-stone-500 text-sm">How was your order? Your review helps others.</p>
         </div>
 

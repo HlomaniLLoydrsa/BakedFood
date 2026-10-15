@@ -5,6 +5,28 @@ import { AppError } from '../middleware/errorHandler';
 
 const router = Router();
 
+// GET /api/reviews/eligible/:orderNumber — public: check if order is eligible for review
+router.get('/eligible/:orderNumber', async (req: Request, res: Response) => {
+  const order = await prisma.order.findUnique({
+    where: { orderNumber: req.params.orderNumber },
+    select: {
+      orderNumber: true,
+      orderStatus: true,
+      customerName: true,
+      review: { select: { id: true } },
+    },
+  });
+
+  if (!order) throw new AppError('Order not found', 404);
+
+  res.json({
+    eligible: order.orderStatus === 'COMPLETED',
+    orderStatus: order.orderStatus,
+    customerName: order.customerName,
+    alreadyReviewed: !!order.review,
+  });
+});
+
 // GET /api/reviews — public: fetch all public reviews
 router.get('/', async (_req: Request, res: Response) => {
   const reviews = await prisma.review.findMany({

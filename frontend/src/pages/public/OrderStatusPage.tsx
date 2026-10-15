@@ -187,11 +187,7 @@ export function OrderStatusPage() {
   const [searchParams]  = useSearchParams();
   const phone           = searchParams.get('phone') || '';
 
-  // If no orderNumber or no phone — show lookup form
-  if (!orderNumber || !phone) {
-    return <OrderLookup defaultOrderNumber={orderNumber || ''} />;
-  }
-
+  // Always call hooks before any conditional returns
   const { data: order, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['order-status', orderNumber, phone],
     queryFn: async () => {
@@ -200,6 +196,8 @@ export function OrderStatusPage() {
     },
     refetchInterval: 30_000,
     retry: false,
+    // Only fetch when we have both values
+    enabled: !!orderNumber && !!phone,
   });
 
   const { data: settings } = useQuery({
@@ -209,6 +207,11 @@ export function OrderStatusPage() {
       return res.data.settings as Settings;
     },
   });
+
+  // Show lookup form if either field is missing
+  if (!orderNumber || !phone) {
+    return <OrderLookup defaultOrderNumber={orderNumber || ''} />;
+  }
 
   if (isLoading) return <PageSpinner />;
 

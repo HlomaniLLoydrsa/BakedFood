@@ -304,7 +304,7 @@ function ReviewsSection() {
         <p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-2">What customers say</p>
         <h2 className="text-2xl font-extrabold text-black mb-6 tracking-tight">Reviews</h2>
         <div className="space-y-3">
-          {reviews.slice(0, 6).map((r) => (
+          {reviews.slice(0, 3).map((r) => (
             <div key={r.id} className="bg-stone-50 rounded-2xl border border-stone-100 p-4">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-bold text-stone-900">{r.customerName}</p>
