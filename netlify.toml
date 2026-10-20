@@ -19,5 +19,5 @@
   status = 200
 
 [functions]
-  node_bundler    = "esbuild"
-  external_node_modules = ["@prisma/client", "@libsql/client"]
+  node_bundler = "esbuild"
+  external_node_modules = ["@prisma/client", "dotenv", "serverless-http", "multer", "cloudinary", "sharp", "bcryptjs"]
