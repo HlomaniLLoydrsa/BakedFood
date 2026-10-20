@@ -1,5 +1,5 @@
 [build]
-  command   = "cd frontend && npm install && npm run build"
+  command   = "npm install && cd frontend && npm install && npm run build"
   publish   = "frontend/dist"
   functions = "netlify/functions"
 
@@ -20,4 +20,19 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["@prisma/client", "dotenv", "serverless-http", "multer", "cloudinary", "sharp", "bcryptjs"]
+  external_node_modules = [
+    "dotenv",
+    "serverless-http",
+    "@prisma/client",
+    "multer",
+    "cloudinary",
+    "sharp",
+    "bcryptjs",
+    "jsonwebtoken",
+    "express",
+    "cors",
+    "uuid",
+    "zod",
+    "date-fns",
+    "express-async-errors"
+  ]
