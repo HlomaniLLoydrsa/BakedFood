@@ -1,13 +1,7 @@
 // Netlify Function — wraps the Express backend
-// Using plain JS to avoid esbuild TypeScript bundling issues
-
-// Register ts-node so we can require TypeScript files at runtime
-require('ts-node').register({
-  transpileOnly: true,
-  compilerOptions: { module: 'commonjs' },
-});
+// The backend is compiled to backend/dist by the build command (npm run build --prefix backend)
 
 const serverless = require('serverless-http');
-const { default: app } = require('../../backend/src/app');
+const { default: app } = require('../../backend/dist/app');
 
 exports.handler = serverless(app);

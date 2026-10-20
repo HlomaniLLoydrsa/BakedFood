@@ -1,5 +1,5 @@
 [build]
-  command   = "cd backend && npm install && cd ../frontend && npm install && npm run build"
+  command   = "npm install --include=dev --prefix backend && npm run build --prefix backend && npm install --include=dev --prefix frontend && npm run build --prefix frontend"
   publish   = "frontend/dist"
   functions = "netlify/functions"
 
@@ -19,4 +19,4 @@
 
 [functions]
   node_bundler = "zisi"
-  included_files = ["backend/src/**", "backend/node_modules/**", "backend/prisma/**"]
+  included_files = ["backend/node_modules/.prisma/**", "backend/node_modules/@prisma/client/**", "backend/prisma/**"]
