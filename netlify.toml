@@ -1,38 +1,20 @@
 [build]
-  command   = "npm install && cd frontend && npm install && npm run build"
+  command   = "npm install --prefix backend && npm install --prefix frontend && cd frontend && npm run build"
   publish   = "frontend/dist"
   functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
 
-# Redirect all API calls to the serverless function
 [[redirects]]
   from   = "/api/*"
   to     = "/.netlify/functions/api/:splat"
   status = 200
 
-# SPA fallback — all other routes serve index.html
 [[redirects]]
   from   = "/*"
   to     = "/index.html"
   status = 200
 
 [functions]
-  node_bundler = "esbuild"
-  external_node_modules = [
-    "dotenv",
-    "serverless-http",
-    "@prisma/client",
-    "multer",
-    "cloudinary",
-    "sharp",
-    "bcryptjs",
-    "jsonwebtoken",
-    "express",
-    "cors",
-    "uuid",
-    "zod",
-    "date-fns",
-    "express-async-errors"
-  ]
+  node_bundler = "zisi"
