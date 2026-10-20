@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
-import { uploadProductImage } from '../lib/storage';
+import { uploadProductImage, uploadToCloudinary, deleteFromCloudinary } from '../lib/cloudinary';
 import { AppError } from '../middleware/errorHandler';
-import { deleteFile } from '../lib/storage';
 
 const router = Router();
 
@@ -42,7 +41,7 @@ router.post('/', uploadProductImage.single('image'), async (req: Request, res: R
 
   let imageUrl: string | undefined;
   if (req.file) {
-    imageUrl = `/uploads/products/${req.file.filename}`;
+    imageUrl = await uploadToCloudinary(req.file.buffer, 'droply/products');
   }
 
   if (data.categoryId) {
@@ -77,8 +76,8 @@ router.put('/:id', uploadProductImage.single('image'), async (req: Request, res:
 
   let imageUrl = existing.imageUrl;
   if (req.file) {
-    if (existing.imageUrl) deleteFile(existing.imageUrl);
-    imageUrl = `/uploads/products/${req.file.filename}`;
+    if (existing.imageUrl) await deleteFromCloudinary(existing.imageUrl);
+    imageUrl = await uploadToCloudinary(req.file.buffer, 'droply/products');
   }
 
   if (data.categoryId) {
@@ -128,7 +127,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     throw new AppError('Cannot delete a product that is used in a drop', 400);
   }
 
-  if (existing.imageUrl) deleteFile(existing.imageUrl);
+  if (existing.imageUrl) await deleteFromCloudinary(existing.imageUrl);
 
   await prisma.product.delete({ where: { id } });
   res.json({ message: 'Product deleted' });

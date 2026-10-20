@@ -46,9 +46,11 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve uploaded files
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
-app.use('/uploads', express.static(path.resolve(uploadDir)));
+// Serve uploaded files (local dev only — production uses Cloudinary)
+if (process.env.NODE_ENV !== 'production') {
+  const uploadDir = process.env.UPLOAD_DIR || './uploads';
+  app.use('/uploads', express.static(path.resolve(uploadDir)));
+}
 
 // API Routes
 app.use('/api/categories', categoryRoutes);

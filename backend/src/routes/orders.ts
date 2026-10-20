@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
-import { uploadProofOfPayment } from '../lib/storage';
+import { uploadProofOfPayment, uploadToCloudinary } from '../lib/cloudinary';
 import { AppError } from '../middleware/errorHandler';
 import { generateOrderNumber } from '../lib/orderNumber';
 
@@ -256,7 +256,11 @@ router.post('/:id/upload-pop', uploadProofOfPayment.single('proof'), async (req:
   if (order.paymentMethod !== 'EFT') throw new AppError('This order does not require proof of payment', 400);
   if (order.paymentStatus === 'PAYMENT_VERIFIED') throw new AppError('Payment has already been verified', 400);
 
-  const proofUrl = `/uploads/proofs/${req.file.filename}`;
+  const proofUrl = await uploadToCloudinary(
+    req.file.buffer,
+    'droply/proofs',
+    req.file.mimetype === 'application/pdf' ? 'raw' : 'image'
+  );
 
   await prisma.$transaction([
     prisma.order.update({ where: { id }, data: { paymentStatus: 'POP_SUBMITTED' } }),

@@ -1,20 +1,16 @@
 /// <reference types="vite/client" />
 import axios from 'axios';
 
-// In development, Vite proxies /api → localhost:3001
-// In production, use the VITE_API_URL env variable set on Vercel
-const baseURL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
-  : '/api';
-
+// - Local dev:    Vite proxies /api → localhost:3001
+// - Netlify prod: netlify.toml redirects /api → /.netlify/functions/api
+// Both cases just use /api as the base — no env var needed.
 const api = axios.create({
-  baseURL,
+  baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
 export default api;
 
-// Helper to extract error message from axios error
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     return error.response?.data?.error || error.response?.data?.message || error.message;

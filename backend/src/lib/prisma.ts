@@ -1,8 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 
-// When TURSO_DATABASE_URL is set (production), Prisma connects to Turso.
-// DATABASE_URL stays as the local SQLite fallback for development.
-// No code changes needed — Prisma uses whichever DATABASE_URL is in the environment.
+// Prisma reads DATABASE_URL from environment automatically.
+// - Local dev:    DATABASE_URL="file:./dev.db"           (SQLite file)
+// - Production:   DATABASE_URL="libsql://..."            (Turso)
+//
+// No adapter needed — Prisma 5+ supports libsql:// natively via DATABASE_URL.
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;

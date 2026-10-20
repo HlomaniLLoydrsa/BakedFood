@@ -1,8 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
-import { uploadProductImage } from '../lib/storage';
-import { deleteFile } from '../lib/storage';
+import { uploadProductImage, uploadToCloudinary, deleteFromCloudinary } from '../lib/cloudinary';
 import { AppError } from '../middleware/errorHandler';
 
 const router = Router();
@@ -56,8 +55,8 @@ router.put('/', uploadProductImage.single('logo'), async (req: Request, res: Res
 
   if (req.file) {
     const existing = await prisma.setting.findUnique({ where: { key: 'businessLogo' } });
-    if (existing?.value) deleteFile(existing.value);
-    updates['businessLogo'] = `/uploads/products/${req.file.filename}`;
+    if (existing?.value) await deleteFromCloudinary(existing.value);
+    updates['businessLogo'] = await uploadToCloudinary(req.file.buffer, 'droply/logos');
   }
 
   Object.entries(data).forEach(([key, value]) => {

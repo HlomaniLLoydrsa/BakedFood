@@ -11,6 +11,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Only proxy in local dev — Netlify redirects /api automatically in production
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
