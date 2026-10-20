@@ -196,6 +196,7 @@ export function PublishPage() {
         <div className="px-4 py-3 border-b border-stone-100 bg-stone-50">
           <p className="text-xs font-extrabold text-stone-700">Store settings</p>
         </div>
+        <div className="p-4 space-y-4">
           <div>
             <label className="text-xs font-bold text-stone-600 block mb-1.5">
               Title <span className="text-stone-400 font-normal">— shown to customers</span>
