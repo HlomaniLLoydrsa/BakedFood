@@ -1,5 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  // driverAdapters lets Prisma talk to Turso over libSQL (HTTP).
+  previewFeatures = ["driverAdapters"]
+  // "native" = local dev engine; the rhel targets cover Netlify Functions
+  // (AWS Lambda / Amazon Linux 2) on Node 18 (openssl 1.0.x) and Node 20 (openssl 3.0.x).
+  binaryTargets   = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
 }
 
 datasource db {

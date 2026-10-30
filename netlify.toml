@@ -5,7 +5,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  NODE_ENV      = "development"
+  NODE_ENV      = "production"
 
 [[redirects]]
   from   = "/api/*"
@@ -19,4 +19,21 @@
 
 [functions]
   node_bundler = "zisi"
-  included_files = ["backend/node_modules/.prisma/**", "backend/node_modules/@prisma/client/**", "backend/prisma/**"]
+  # Include the compiled backend plus the Prisma client + query engine.
+  # npm workspaces may hoist node_modules to the repo root, so we cover
+  # both the backend-local and root locations; globs that match nothing
+  # are simply ignored by Netlify.
+  included_files = [
+    "backend/dist/**",
+    "backend/prisma/**",
+    "backend/node_modules/.prisma/**",
+    "backend/node_modules/@prisma/client/**",
+    "backend/node_modules/@prisma/adapter-libsql/**",
+    "backend/node_modules/@libsql/**",
+    "backend/node_modules/libsql/**",
+    "node_modules/.prisma/**",
+    "node_modules/@prisma/client/**",
+    "node_modules/@prisma/adapter-libsql/**",
+    "node_modules/@libsql/**",
+    "node_modules/libsql/**"
+  ]

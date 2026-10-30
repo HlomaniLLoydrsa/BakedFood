@@ -3,8 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "dotenv": "^18.0.8",
-    "serverless-http": "^4.0.0",
-    "ts-node": "^10.9.2"
+    "serverless-http": "^4.0.0"
   }
 }
