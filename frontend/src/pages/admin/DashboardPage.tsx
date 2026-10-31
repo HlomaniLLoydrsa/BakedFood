@@ -100,7 +100,7 @@ export function DashboardPage() {
                 </div>
                 {/* Quick actions */}
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/drop/${drop.slug}`); toast.success('Link copied'); }}
+                  <button onClick={() => { navigator.clipboard.writeText(window.location.origin); toast.success('Link copied'); }}
                     className="flex-1 flex items-center justify-center gap-1.5 bg-white/10 border border-white/10 text-white text-xs font-semibold py-2.5 rounded-xl hover:bg-white/15 transition-colors">
                     <Copy size={13} /> Copy order link
                   </button>

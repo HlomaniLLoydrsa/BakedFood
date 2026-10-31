@@ -215,7 +215,7 @@ export function OrderDetailPage() {
           {order.payment?.proofUrl && (
             <div>
               <p className="text-xs text-stone-400 mb-2">Proof of Payment</p>
-              {order.payment.proofUrl.endsWith('.pdf') ? (
+              {(order.payment.proofUrl.endsWith('.pdf') || order.payment.proofUrl.startsWith('data:application/pdf')) ? (
                 <a href={order.payment.proofUrl} target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium hover:bg-stone-100 transition-colors">
                   <FileText size={14} /> View PDF <ExternalLink size={12} className="text-stone-400" />

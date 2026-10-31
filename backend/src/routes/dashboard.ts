@@ -13,7 +13,11 @@ router.get('/', async (_req: Request, res: Response) => {
 
   const activeDrops = await prisma.drop.findMany({
     where: {
-      status: { not: 'CANCELLED' },
+      // Only windows that are genuinely open: not cancelled, not manually
+      // closed, and currently inside their opens/closes time range. A manual
+      // "Close" sets status = CLOSED, so excluding it stops the dashboard
+      // from showing a closed store with a live "Closes in…" countdown.
+      status: { notIn: ['CANCELLED', 'CLOSED'] },
       opensAt: { lte: now },
       closesAt: { gt: now },
     },

@@ -247,7 +247,7 @@ export function SettingsPage() {
           <Field label="WhatsApp" type="tel" value={form.businessWhatsapp} onChange={set('businessWhatsapp')} placeholder="+27 82 555 1234" />
         </div>
         <Field label="Email" type="email" value={form.businessEmail} onChange={set('businessEmail')} placeholder="hello@yourbusiness.co.za" />
-        <Field label="Address" value={form.businessAddress} onChange={set('businessAddress')} placeholder="Cape Town, Western Cape" />
+        <Field label="Address" value={form.businessAddress} onChange={set('businessAddress')} placeholder="Summerstrand, Port Elizabeth" />
       </Card>
 
       {/* Banking */}
@@ -274,7 +274,7 @@ export function SettingsPage() {
             <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.deliveryEnabled === 'true' ? 'translate-x-5' : 'translate-x-0.5'}`} />
           </div>
         </label>
-        <AreaField label="Delivery Instructions" rows={2} value={form.deliveryInstructions} onChange={set('deliveryInstructions')} placeholder="We deliver across Cape Town…" />
+        <AreaField label="Delivery Instructions" rows={2} value={form.deliveryInstructions} onChange={set('deliveryInstructions')} placeholder="We deliver across Summerstrand and Port Elizabeth…" />
 
         <div className="border-t border-stone-100 pt-4" />
 

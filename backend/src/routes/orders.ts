@@ -260,7 +260,7 @@ router.post('/:id/upload-pop', uploadProofOfPayment.single('proof'), async (req:
   const proofUrl = await uploadToCloudinary(
     req.file.buffer,
     'droply/proofs',
-    req.file.mimetype === 'application/pdf' ? 'raw' : 'image'
+    req.file.mimetype
   );
 
   await prisma.$transaction([

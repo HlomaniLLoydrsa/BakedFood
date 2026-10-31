@@ -96,8 +96,7 @@ export function PublishPage() {
   }
 
   function copyLink() {
-    if (!data) return;
-    navigator.clipboard.writeText(`${window.location.origin}/drop/${data.slug}`);
+    navigator.clipboard.writeText(window.location.origin);
     toast.success('Link copied!');
   }
 
@@ -105,7 +104,7 @@ export function PublishPage() {
   if (!data) return null;
 
   const store = data;
-  const shareUrl = `${window.location.origin}/drop/${store.slug}`;
+  const shareUrl = window.location.origin;
 
   return (
     <div className="space-y-4 max-w-lg mx-auto">
@@ -181,7 +180,7 @@ export function PublishPage() {
             className="flex-1 flex items-center justify-center gap-2 bg-black text-white text-xs font-bold py-2.5 rounded-xl hover:bg-green-600 transition-colors">
             <Copy size={13} /> Copy link
           </button>
-          <button onClick={() => window.open(`/drop/${store.slug}`, '_blank')}
+          <button onClick={() => window.open('/', '_blank')}
             className="flex-1 flex items-center justify-center gap-2 bg-stone-100 text-stone-700 text-xs font-bold py-2.5 rounded-xl hover:bg-stone-200 transition-colors">
             <ExternalLink size={13} /> Preview
           </button>

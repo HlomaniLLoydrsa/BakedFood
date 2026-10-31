@@ -418,7 +418,7 @@ export function DropPage() {
                     <Textarea
                       label="Delivery Address"
                       required
-                      placeholder="14 Oak Street, Claremont, Cape Town, 7708"
+                      placeholder="14 Oak Street, Summerstrand, Port Elizabeth, 6001"
                       rows={3}
                       value={form.deliveryAddress}
                       onChange={(e) => setForm((f) => ({ ...f, deliveryAddress: e.target.value }))}
@@ -482,10 +482,10 @@ export function DropPage() {
                     </div>
                     <FileUpload
                       label="Upload Proof of Payment"
-                      accept="image/jpeg,image/jpg,image/png,application/pdf"
+                      accept="image/*,application/pdf"
                       onChange={setPopFile}
                       value={popFile}
-                      hint="JPG, PNG or PDF — max 10MB"
+                      hint="Any photo or a PDF — max 10MB"
                       error={errors.pop}
                     />
                   </div>
