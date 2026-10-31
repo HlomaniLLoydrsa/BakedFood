@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Upload, X, FileText, Image } from 'lucide-react';
+import { X, FileText, Image } from 'lucide-react';
 
 interface FileUploadProps {
   label?: string;
@@ -26,8 +26,9 @@ export function FileUpload({ label, accept, onChange, error, hint, currentUrl, v
     if (file) handleFile(file);
   };
 
-  const isImage = value?.type.startsWith('image/') || (currentUrl && !currentUrl.endsWith('.pdf'));
-  const isPdf = value?.type === 'application/pdf' || currentUrl?.endsWith('.pdf');
+  const isPdfUrl = (u?: string) => !!u && (u.endsWith('.pdf') || u.startsWith('data:application/pdf'));
+  const isImage = value?.type.startsWith('image/') || (currentUrl && !isPdfUrl(currentUrl));
+  const isPdf = value?.type === 'application/pdf' || isPdfUrl(currentUrl);
 
   return (
     <div className="w-full">
@@ -35,39 +36,50 @@ export function FileUpload({ label, accept, onChange, error, hint, currentUrl, v
 
       {/* Preview */}
       {(value || currentUrl) && (
-        <div className="mb-3 relative inline-block">
-          {isImage ? (
-            <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-zinc-200">
-              <img
-                src={value ? URL.createObjectURL(value) : currentUrl}
-                alt="Preview"
-                className="w-full h-full object-cover"
-              />
-              <button
-                type="button"
-                onClick={() => onChange(null)}
-                className="absolute top-1 right-1 p-0.5 bg-white rounded-full shadow-sm border border-zinc-200 hover:bg-red-50"
-              >
-                <X size={12} className="text-zinc-500" />
-              </button>
-            </div>
-          ) : isPdf ? (
-            <div className="flex items-center gap-2 p-3 bg-zinc-50 rounded-lg border border-zinc-200">
-              <FileText size={20} className="text-zinc-500" />
-              <span className="text-sm text-zinc-700">{value?.name || 'Uploaded file'}</span>
-              <button
-                type="button"
-                onClick={() => onChange(null)}
-                className="ml-auto p-0.5 hover:bg-zinc-200 rounded"
-              >
-                <X size={12} className="text-zinc-500" />
-              </button>
-            </div>
-          ) : null}
+        <div className="mb-3">
+          <div className="relative inline-block">
+            {isImage ? (
+              <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-zinc-200">
+                <img
+                  src={value ? URL.createObjectURL(value) : currentUrl}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => onChange(null)}
+                  className="absolute top-1 right-1 p-0.5 bg-white rounded-full shadow-sm border border-zinc-200 hover:bg-red-50"
+                >
+                  <X size={12} className="text-zinc-500" />
+                </button>
+              </div>
+            ) : isPdf ? (
+              <div className="flex items-center gap-2 p-3 bg-zinc-50 rounded-lg border border-zinc-200">
+                <FileText size={20} className="text-zinc-500" />
+                <span className="text-sm text-zinc-700">{value?.name || 'Uploaded file'}</span>
+                <button
+                  type="button"
+                  onClick={() => onChange(null)}
+                  className="ml-auto p-0.5 hover:bg-zinc-200 rounded"
+                >
+                  <X size={12} className="text-zinc-500" />
+                </button>
+              </div>
+            ) : null}
+          </div>
+
+          {/* Replace button — lets you swap an existing/new file */}
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="mt-2 ml-0.5 text-xs font-semibold text-zinc-600 hover:text-zinc-900 underline underline-offset-2"
+          >
+            {value ? 'Choose a different file' : 'Replace photo'}
+          </button>
         </div>
       )}
 
-      {/* Drop zone */}
+      {/* Drop zone — only when nothing is selected yet */}
       {!value && !currentUrl && (
         <div
           onClick={() => inputRef.current?.click()}

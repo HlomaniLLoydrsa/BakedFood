@@ -5,6 +5,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import App from './App';
 import './index.css';
+import { registerSW } from 'virtual:pwa-register';
+
+// Register the service worker. autoUpdate: when a new version is deployed,
+// activate it and reload so users always get the latest build.
+registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    window.location.reload();
+  },
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {

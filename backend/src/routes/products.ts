@@ -127,10 +127,11 @@ router.delete('/:id', async (req: Request, res: Response) => {
   const existing = await prisma.product.findUnique({ where: { id } });
   if (!existing) throw new AppError('Product not found', 404);
 
-  const inDrop = await prisma.dropProduct.count({ where: { productId: id } });
-  if (inDrop > 0) {
-    throw new AppError('Cannot delete a product that is used in a drop', 400);
-  }
+  // The store auto-includes every available product (via dropProduct rows), so
+  // nearly every product is "in the drop". Remove those store links first, then
+  // delete the product. Past orders keep working: order items store name/price
+  // snapshots and have no foreign key to Product, so history stays intact.
+  await prisma.dropProduct.deleteMany({ where: { productId: id } });
 
   if (existing.imageUrl) await deleteFromCloudinary(existing.imageUrl);
 
