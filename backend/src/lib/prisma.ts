@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaLibSQL } from '@prisma/adapter-libsql';
-import { createClient } from '@libsql/client';
+// Use the WEB (pure-JS / HTTP) build of the libSQL client, not the default
+// Node build. The Node build requires the native `libsql` binary, whose
+// platform-specific .node file is easily missed when bundling a serverless
+// function (causing every query to throw at runtime). Turso over libsql://
+// uses HTTP, so the web client is the correct, dependency-free choice.
+import { createClient } from '@libsql/client/web';
 
 // Connection strategy:
 // - Local dev:  DATABASE_URL="file:./dev.db"   → plain SQLite file, no adapter.
