@@ -14,12 +14,19 @@ export function PinGatePage({ onVerified }: PinGatePageProps) {
   const [isFirst, setIsFirst] = useState(false);
   const [step, setStep]       = useState<'enter' | 'setup_new' | 'setup_confirm'>('enter');
   const [newPin, setNewPin]   = useState('');
+  const [checking, setChecking] = useState(true);
 
-  // Check if PIN exists
+  // Check if PIN exists. If this call fails we surface the real error instead
+  // of silently showing the "enter PIN" screen (which looks like a wrong-PIN bug).
   useEffect(() => {
-    api.get('/pin/exists').then((r) => {
-      if (!r.data.exists) setIsFirst(true);
-    }).catch(() => {});
+    api.get('/pin/exists')
+      .then((r) => {
+        setIsFirst(!r.data.exists);
+      })
+      .catch((err) => {
+        setError(`Could not reach the server: ${getErrorMessage(err)}`);
+      })
+      .finally(() => setChecking(false));
   }, []);
 
   async function verify(code: string) {
@@ -123,7 +130,7 @@ export function PinGatePage({ onVerified }: PinGatePageProps) {
             </button>
           );
           return (
-            <button key={i} onClick={() => handleDigit(d)} disabled={loading}
+            <button key={i} onClick={() => handleDigit(d)} disabled={loading || checking}
               className="h-16 bg-white border border-stone-200 rounded-2xl flex items-center justify-center text-xl font-bold text-stone-900 hover:bg-stone-50 active:bg-stone-100 transition-colors shadow-soft disabled:opacity-50">
               {d}
             </button>
