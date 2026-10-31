@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { generateSlug } from '../lib/slug';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
@@ -82,8 +83,8 @@ async function syncStoreProducts(dropId: string) {
   }
 }
 
-// ── GET /api/store ────────────────────────────────────────────────────────
-router.get('/', async (_req: Request, res: Response) => {
+// ── GET /api/store ──────────────────────────────────────────────────────── (admin)
+router.get('/', authenticate, async (_req: Request, res: Response) => {
   const store = await getOrCreateStore();
   const now = new Date();
 
@@ -103,9 +104,9 @@ router.get('/', async (_req: Request, res: Response) => {
   });
 });
 
-// ── PUT /api/store ────────────────────────────────────────────────────────
+// ── PUT /api/store ──────────────────────────────────────────────────────── (admin)
 // Updates name, description, opensAt, closesAt, and open status
-router.put('/', async (req: Request, res: Response) => {
+router.put('/', authenticate, async (req: Request, res: Response) => {
   const schema = z.object({
     name:        z.string().min(1).max(200).optional(),
     description: z.string().max(1000).optional(),

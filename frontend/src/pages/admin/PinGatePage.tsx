@@ -1,58 +1,27 @@
-import { useState, useRef, useEffect } from 'react';
-import { Zap, Delete } from 'lucide-react';
+import { useState } from 'react';
+import { Lock, Delete } from 'lucide-react';
 import api, { getErrorMessage } from '../../lib/api';
-import { setPinVerified } from '../../lib/pin';
+import { setAdminToken } from '../../lib/pin';
 
 interface PinGatePageProps {
   onVerified: () => void;
 }
 
 export function PinGatePage({ onVerified }: PinGatePageProps) {
-  const [pin, setPin]         = useState('');
-  const [error, setError]     = useState('');
-  const [loading, setLoading] = useState(false);
-  const [isFirst, setIsFirst] = useState(false);
-  const [step, setStep]       = useState<'enter' | 'setup_new' | 'setup_confirm'>('enter');
-  const [newPin, setNewPin]   = useState('');
-  const [checking, setChecking] = useState(true);
+  const [pin, setPin]           = useState('');
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
 
-  // Check if PIN exists. If this call fails we surface the real error instead
-  // of silently showing the "enter PIN" screen (which looks like a wrong-PIN bug).
-  useEffect(() => {
-    api.get('/pin/exists')
-      .then((r) => {
-        setIsFirst(!r.data.exists);
-      })
-      .catch((err) => {
-        setError(`Could not reach the server: ${getErrorMessage(err)}`);
-      })
-      .finally(() => setChecking(false));
-  }, []);
-
-  async function verify(code: string) {
+  async function login(code: string) {
     setLoading(true);
     setError('');
     try {
-      await api.post('/pin/verify', { pin: code });
-      setPinVerified();
+      const r = await api.post('/pin/login', { pin: code });
+      setAdminToken(r.data.token);
       onVerified();
     } catch (err) {
-      setError('Incorrect PIN. Try again.');
+      setError(getErrorMessage(err) || 'Incorrect PIN. Try again.');
       setPin('');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function setupPin(code: string, confirm: string) {
-    if (code !== confirm) { setError('PINs do not match. Try again.'); setNewPin(''); setPin(''); setStep('setup_new'); return; }
-    setLoading(true);
-    try {
-      await api.post('/pin/set', { newPin: code });
-      setPinVerified();
-      onVerified();
-    } catch (err) {
-      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -61,25 +30,10 @@ export function PinGatePage({ onVerified }: PinGatePageProps) {
   function handleDigit(d: string) {
     if (loading) return;
     const next = pin + d;
-    if (next.length > 6) return;
+    if (next.length > 4) return;
     setPin(next);
     setError('');
-
-    if (next.length === 4) {
-      // 4 digits entered — act
-      if (isFirst) {
-        if (step === 'enter') {
-          // First time: treat as the new PIN
-          setNewPin(next);
-          setPin('');
-          setStep('setup_confirm');
-        } else if (step === 'setup_confirm') {
-          setupPin(newPin, next);
-        }
-      } else {
-        verify(next);
-      }
-    }
+    if (next.length === 4) login(next);
   }
 
   function handleDelete() {
@@ -89,23 +43,15 @@ export function PinGatePage({ onVerified }: PinGatePageProps) {
 
   const dots = Array.from({ length: 4 }, (_, i) => i < pin.length);
 
-  const title = isFirst
-    ? step === 'enter' ? 'Create a PIN' : 'Confirm your PIN'
-    : 'Admin Access';
-
-  const subtitle = isFirst
-    ? step === 'enter' ? 'Set a 4-digit PIN to protect your admin panel.' : 'Enter your PIN again to confirm.'
-    : 'Enter your PIN to continue.';
-
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center px-5">
       {/* Logo */}
       <div className="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-green-500/25">
-        <Zap size={26} className="text-white" />
+        <Lock size={24} className="text-white" />
       </div>
 
-      <h1 className="text-2xl font-extrabold text-stone-900 mb-1">{title}</h1>
-      <p className="text-sm text-stone-400 mb-10 text-center max-w-xs">{subtitle}</p>
+      <h1 className="text-2xl font-extrabold text-stone-900 mb-1">Admin Access</h1>
+      <p className="text-sm text-stone-400 mb-8 text-center max-w-xs">Enter your 4-digit PIN to continue.</p>
 
       {/* PIN dots */}
       <div className="flex items-center gap-4 mb-8">
@@ -130,7 +76,7 @@ export function PinGatePage({ onVerified }: PinGatePageProps) {
             </button>
           );
           return (
-            <button key={i} onClick={() => handleDigit(d)} disabled={loading || checking}
+            <button key={i} onClick={() => handleDigit(d)} disabled={loading}
               className="h-16 bg-white border border-stone-200 rounded-2xl flex items-center justify-center text-xl font-bold text-stone-900 hover:bg-stone-50 active:bg-stone-100 transition-colors shadow-soft disabled:opacity-50">
               {d}
             </button>

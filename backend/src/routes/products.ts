@@ -3,8 +3,13 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { uploadProductImage, uploadToCloudinary, deleteFromCloudinary } from '../lib/cloudinary';
 import { AppError } from '../middleware/errorHandler';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
+
+// All product endpoints are admin-only (the public site reads products
+// through /api/store/public, never directly from here).
+router.use(authenticate);
 
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required').max(200),

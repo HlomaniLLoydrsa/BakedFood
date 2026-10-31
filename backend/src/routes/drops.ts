@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { generateSlug, ensureUniqueSlug } from '../lib/slug';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
@@ -39,7 +40,7 @@ function computeDropStatus(drop: { opensAt: Date | string; closesAt: Date | stri
 }
 
 // GET /api/drops
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', authenticate, async (_req: Request, res: Response) => {
   const drops = await prisma.drop.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
@@ -99,7 +100,7 @@ router.get('/public/:slug', async (req: Request, res: Response) => {
 });
 
 // GET /api/drops/:id
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', authenticate, async (req: Request, res: Response) => {
   const drop = await prisma.drop.findUnique({
     where: { id: req.params.id },
     include: { dropProducts: { include: { product: true } }, _count: { select: { orders: true } } },
@@ -109,7 +110,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/drops
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', authenticate, async (req: Request, res: Response) => {
   const data = dropSchema.parse(req.body);
 
   if (new Date(data.closesAt) <= new Date(data.opensAt)) {
@@ -143,7 +144,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // PUT /api/drops/:id
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', authenticate, async (req: Request, res: Response) => {
   const { id } = req.params;
   const data = dropSchema.parse(req.body);
 
@@ -187,7 +188,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/drops/:id/close
-router.post('/:id/close', async (req: Request, res: Response) => {
+router.post('/:id/close', authenticate, async (req: Request, res: Response) => {
   const { id } = req.params;
   const drop = await prisma.drop.findUnique({ where: { id } });
   if (!drop) throw new AppError('Drop not found', 404);
@@ -196,7 +197,7 @@ router.post('/:id/close', async (req: Request, res: Response) => {
 });
 
 // POST /api/drops/:id/duplicate
-router.post('/:id/duplicate', async (req: Request, res: Response) => {
+router.post('/:id/duplicate', authenticate, async (req: Request, res: Response) => {
   const { id } = req.params;
   const drop = await prisma.drop.findUnique({ where: { id }, include: { dropProducts: true } });
   if (!drop) throw new AppError('Drop not found', 404);
@@ -225,7 +226,7 @@ router.post('/:id/duplicate', async (req: Request, res: Response) => {
 });
 
 // DELETE /api/drops/:id
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response) => {
   const { id } = req.params;
   const drop = await prisma.drop.findUnique({ where: { id } });
   if (!drop) throw new AppError('Drop not found', 404);
@@ -238,7 +239,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
 });
 
 // GET /api/drops/:id/demand
-router.get('/:id/demand', async (req: Request, res: Response) => {
+router.get('/:id/demand', authenticate, async (req: Request, res: Response) => {
   const { id } = req.params;
   const drop = await prisma.drop.findUnique({ where: { id } });
   if (!drop) throw new AppError('Drop not found', 404);

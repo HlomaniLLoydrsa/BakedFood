@@ -7,7 +7,7 @@ import { Settings } from '../../types';
 import { FileUpload } from '../../components/ui/FileUpload';
 import { PageSpinner } from '../../components/ui/Spinner';
 import { Modal } from '../../components/ui/Modal';
-import { clearPin } from '../../lib/pin';
+import { clearAdminToken } from '../../lib/pin';
 
 // ── Field components defined OUTSIDE the page so they never remount ───────
 function Field({
@@ -79,15 +79,18 @@ function PinSection() {
   const [showNew, setShowNew] = useState(false);
 
   async function handleSave() {
-    if (newPin.length < 4) { setError('PIN must be at least 4 digits'); return; }
+    if (currentPin.length < 4) { setError('Enter your current PIN (default is 0000)'); return; }
+    if (newPin.length < 4) { setError('New PIN must be at least 4 digits'); return; }
     if (newPin !== confirmPin) { setError('PINs do not match'); return; }
     setError(''); setLoading(true);
     try {
-      await api.post('/pin/set', { currentPin: currentPin || undefined, newPin });
-      toast.success('PIN updated. You will need to re-enter it next time.');
-      clearPin();
+      await api.post('/pin/set', { currentPin, newPin });
+      toast.success('PIN updated. You will need to log in again.');
+      clearAdminToken();
       setOpen(false);
       setCurrentPin(''); setNewPin(''); setConfirmPin('');
+      // Force re-auth with the new PIN.
+      window.location.assign('/admin');
     } catch (err) {
       setError(getErrorMessage(err));
     } finally { setLoading(false); }
@@ -114,7 +117,7 @@ function PinSection() {
       <Modal isOpen={open} onClose={() => { setOpen(false); setError(''); }} title="Change Admin PIN" size="sm">
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-xs font-bold text-stone-600 block mb-1.5">Current PIN <span className="text-stone-400">(leave blank if first time)</span></label>
+            <label className="text-xs font-bold text-stone-600 block mb-1.5">Current PIN <span className="text-stone-400">(default is 0000)</span></label>
             <input type="password" maxLength={8}
               className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
               placeholder="Current PIN"
@@ -167,11 +170,6 @@ export function SettingsPage() {
   const queryClient = useQueryClient();
   const [logoFile, setLogoFile] = useState<File | null>(null);
 
-  const [codeModalOpen, setCodeModalOpen] = useState(false);
-  const [adminCode, setAdminCode] = useState('');
-  const [showCode, setShowCode] = useState(false);
-  const [codeError, setCodeError] = useState('');
-
   const [form, setForm] = useState({
     businessName: '', businessPhone: '', businessWhatsapp: '', businessEmail: '', businessAddress: '',
     bankName: '', bankAccountHolder: '', bankAccountNumber: '', bankBranchCode: '', bankAccountType: '',
@@ -214,28 +212,13 @@ export function SettingsPage() {
     onSuccess: () => {
       toast.success('Settings saved');
       queryClient.invalidateQueries({ queryKey: ['settings'] });
-      setCodeModalOpen(false); setAdminCode(''); setCodeError('');
     },
-    onError: (err) => {
-      const msg = getErrorMessage(err);
-      if (msg.toLowerCase().includes('invalid access code') || msg.includes('403')) {
-        setCodeError('Incorrect access code. Please try again.');
-      } else {
-        toast.error(msg);
-        setCodeModalOpen(false);
-      }
-    },
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   function handleSaveClick() {
-    setCodeError(''); setAdminCode(''); setCodeModalOpen(true);
-  }
-
-  function handleConfirmSave() {
-    if (!adminCode.trim()) { setCodeError('Please enter your access code'); return; }
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => fd.append(k, v));
-    fd.append('adminCode', adminCode);
     if (logoFile) fd.append('logo', logoFile);
     mutation.mutate(fd);
   }
@@ -312,50 +295,11 @@ export function SettingsPage() {
       {/* Save */}
       <button
         onClick={handleSaveClick}
-        className="w-full py-4 bg-green-500 text-white font-extrabold text-sm rounded-2xl hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-500/25"
+        disabled={mutation.isPending}
+        className="w-full py-4 bg-green-500 text-white font-extrabold text-sm rounded-2xl hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-500/25 disabled:opacity-50"
       >
-        <Lock size={16} /> Save settings
+        <Lock size={16} /> {mutation.isPending ? 'Saving…' : 'Save settings'}
       </button>
-
-      {/* Access code modal */}
-      <Modal isOpen={codeModalOpen} onClose={() => { setCodeModalOpen(false); setCodeError(''); }} title="Enter Access Code" size="sm">
-        <div className="p-6">
-          <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-xl border border-stone-100 mb-5">
-            <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Lock size={14} className="text-white" />
-            </div>
-            <p className="text-sm text-stone-600">Enter your admin access code to save.</p>
-          </div>
-
-          <div className="relative mb-1">
-            <input
-              type={showCode ? 'text' : 'password'}
-              className="w-full px-4 py-3 pr-10 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
-              placeholder="Access code"
-              value={adminCode}
-              onChange={(e) => { setAdminCode(e.target.value); setCodeError(''); }}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmSave(); }}
-              autoFocus
-            />
-            <button type="button" onClick={() => setShowCode(!showCode)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600">
-              {showCode ? <EyeOff size={15} /> : <Eye size={15} />}
-            </button>
-          </div>
-          {codeError && <p className="text-xs text-red-600 mb-1 mt-1.5">{codeError}</p>}
-
-          <div className="flex gap-3 mt-5">
-            <button onClick={() => { setCodeModalOpen(false); setCodeError(''); }}
-              className="flex-1 py-3 bg-stone-100 text-stone-600 font-bold text-sm rounded-xl hover:bg-stone-200 transition-colors">
-              Cancel
-            </button>
-            <button onClick={handleConfirmSave} disabled={mutation.isPending}
-              className="flex-1 py-3 bg-green-500 text-white font-bold text-sm rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50">
-              {mutation.isPending ? 'Saving…' : 'Save'}
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }

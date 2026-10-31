@@ -2,8 +2,12 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
+
+// All category endpoints are admin-only.
+router.use(authenticate);
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required').max(100),

@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Package, Zap, ChevronDown, MessageCircle, Search, Clock } from 'lucide-react';
+import { ArrowRight, Package, Zap, ChevronDown, MessageCircle, Search, Clock, Ban } from 'lucide-react';
 import api from '../../lib/api';
 import { Settings } from '../../types';
 import { formatCurrency } from '../../lib/format';
@@ -67,9 +67,11 @@ function VideoHero({ businessName, storeOpen, storeSlug, closesAt }: {
             </div>
             <span className="text-white font-bold tracking-tight">{businessName || 'Droply'}</span>
           </div>
+          {/* Discreet admin entry — looks like a decorative restricted icon */}
           <Link to="/admin"
-            className="text-xs font-semibold text-white/40 hover:text-white transition-colors px-3 py-1.5 rounded-full border border-white/10 hover:border-white/30">
-            Admin
+            aria-label="Restricted"
+            className="w-8 h-8 rounded-xl flex items-center justify-center text-white/20 hover:text-white/60 transition-colors">
+            <Ban size={15} />
           </Link>
         </nav>
 

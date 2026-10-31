@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, Send, ShoppingBag, Settings, Menu, X, ExternalLink, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Package, Send, ShoppingBag, Settings, Menu, X, ExternalLink, ChevronRight, LogOut } from 'lucide-react';
+import { clearAdminToken } from '../../lib/pin';
+
+// Clear the admin session and return to the public site.
+function logout() {
+  clearAdminToken();
+  window.location.assign('/');
+}
 
 const NAV = [
   { to: '/admin',          label: 'Home',     icon: LayoutDashboard, exact: true  },
@@ -95,12 +102,17 @@ function Sidebar() {
         })}
       </nav>
 
-      <div className="p-3 border-t border-stone-100">
+      <div className="p-3 border-t border-stone-100 space-y-0.5">
         <a href="/" target="_blank" rel="noopener noreferrer"
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition-colors">
           <ExternalLink size={14} />
           View public site
         </a>
+        <button onClick={logout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors">
+          <LogOut size={14} />
+          Log out
+        </button>
       </div>
     </aside>
   );
@@ -165,6 +177,12 @@ function Drawer({ open, onClose }: { open: boolean; onClose: () => void }) {
               </Link>
             );
           })}
+
+          <button onClick={() => { onClose(); logout(); }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors mt-1 border-t border-stone-100 pt-4">
+            <LogOut size={17} />
+            Log out
+          </button>
         </nav>
       </div>
     </>

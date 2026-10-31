@@ -1,25 +1,24 @@
-const PIN_SESSION_KEY = 'droply_admin_verified';
-const PIN_EXPIRY_MS = 8 * 60 * 60 * 1000; // 8 hours
+// Admin session is a JWT returned by POST /api/pin/login. We keep it in
+// sessionStorage (cleared when the tab closes) and attach it to every API
+// request via an axios interceptor (see lib/api.ts).
+const TOKEN_KEY = 'droply_admin_token';
 
-export function isPinVerified(): boolean {
+export function getAdminToken(): string | null {
   try {
-    const raw = sessionStorage.getItem(PIN_SESSION_KEY);
-    if (!raw) return false;
-    const { ts } = JSON.parse(raw);
-    if (Date.now() - ts > PIN_EXPIRY_MS) {
-      sessionStorage.removeItem(PIN_SESSION_KEY);
-      return false;
-    }
-    return true;
+    return sessionStorage.getItem(TOKEN_KEY);
   } catch {
-    return false;
+    return null;
   }
 }
 
-export function setPinVerified(): void {
-  sessionStorage.setItem(PIN_SESSION_KEY, JSON.stringify({ ts: Date.now() }));
+export function setAdminToken(token: string): void {
+  sessionStorage.setItem(TOKEN_KEY, token);
 }
 
-export function clearPin(): void {
-  sessionStorage.removeItem(PIN_SESSION_KEY);
+export function clearAdminToken(): void {
+  sessionStorage.removeItem(TOKEN_KEY);
+}
+
+export function isPinVerified(): boolean {
+  return !!getAdminToken();
 }

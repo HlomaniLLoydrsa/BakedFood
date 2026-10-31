@@ -1,7 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
+
+// Dashboard is admin-only.
+router.use(authenticate);
 
 // GET /api/dashboard
 router.get('/', async (_req: Request, res: Response) => {

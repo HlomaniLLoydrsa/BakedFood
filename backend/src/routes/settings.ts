@@ -2,11 +2,9 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { uploadProductImage, uploadToCloudinary, deleteFromCloudinary } from '../lib/cloudinary';
-import { AppError } from '../middleware/errorHandler';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
-
-const ADMIN_CODE = process.env.ADMIN_CODE || 'droply2024';
 
 async function getSettingsMap(): Promise<Record<string, string>> {
   const settings = await prisma.setting.findMany();
@@ -22,13 +20,7 @@ router.get('/', async (_req: Request, res: Response) => {
 });
 
 // PUT /api/settings — requires secret code in header or body
-router.put('/', uploadProductImage.single('logo'), async (req: Request, res: Response) => {
-  // Accept code from header OR form body (for multipart forms)
-  const code = (req.headers['x-admin-code'] as string) || req.body.adminCode;
-  if (!code || code !== ADMIN_CODE) {
-    throw new AppError('Invalid access code', 403);
-  }
-
+router.put('/', authenticate, uploadProductImage.single('logo'), async (req: Request, res: Response) => {
   const bodySchema = z.object({
     businessName: z.string().max(200).optional(),
     businessPhone: z.string().max(20).optional(),

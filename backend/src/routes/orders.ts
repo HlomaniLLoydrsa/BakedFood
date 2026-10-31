@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma';
 import { uploadProofOfPayment, uploadToCloudinary } from '../lib/cloudinary';
 import { AppError } from '../middleware/errorHandler';
 import { generateOrderNumber } from '../lib/orderNumber';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
@@ -20,8 +21,8 @@ const orderSchema = z.object({
     .min(1, 'Order must contain at least one item'),
 });
 
-// GET /api/orders
-router.get('/', async (req: Request, res: Response) => {
+// GET /api/orders — admin: list all orders (contains customer PII)
+router.get('/', authenticate, async (req: Request, res: Response) => {
   const { dropId, paymentStatus, orderStatus, search, page = '1', limit = '50' } = req.query as Record<string, string>;
 
   const where: Record<string, unknown> = {};
@@ -57,7 +58,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // GET /api/orders/export/:dropId  — must be before /:id
-router.get('/export/:dropId', async (req: Request, res: Response) => {
+router.get('/export/:dropId', authenticate, async (req: Request, res: Response) => {
   const { dropId } = req.params;
 
   const orders = await prisma.order.findMany({
@@ -141,8 +142,8 @@ router.get('/number/:orderNumber', async (req: Request, res: Response) => {
   });
 });
 
-// GET /api/orders/:id
-router.get('/:id', async (req: Request, res: Response) => {
+// GET /api/orders/:id — admin: full order detail
+router.get('/:id', authenticate, async (req: Request, res: Response) => {
   const order = await prisma.order.findUnique({
     where: { id: req.params.id },
     include: {
@@ -270,8 +271,8 @@ router.post('/:id/upload-pop', uploadProofOfPayment.single('proof'), async (req:
   res.json({ message: 'Proof of payment uploaded', proofUrl });
 });
 
-// PATCH /api/orders/:id/payment-status
-router.patch('/:id/payment-status', async (req: Request, res: Response) => {
+// PATCH /api/orders/:id/payment-status — admin
+router.patch('/:id/payment-status', authenticate, async (req: Request, res: Response) => {
   const { id } = req.params;
   const { status, rejectionReason } = z.object({
     status: z.enum(['PAYMENT_VERIFIED', 'PAYMENT_REJECTED', 'CASH_RECEIVED']),
@@ -298,7 +299,7 @@ router.patch('/:id/payment-status', async (req: Request, res: Response) => {
 });
 
 // PATCH /api/orders/:id/order-status — admin only, enforced one-way flow
-router.patch('/:id/order-status', async (req: Request, res: Response) => {
+router.patch('/:id/order-status', authenticate, async (req: Request, res: Response) => {
   const { id } = req.params;
   const { status } = z.object({
     status: z.enum(['CONFIRMED', 'COMPLETED']),
