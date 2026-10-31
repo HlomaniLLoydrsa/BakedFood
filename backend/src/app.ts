@@ -28,9 +28,12 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
-      // Allow configured origin, localhost, and any vercel.app subdomain
+      // Allow configured origin, localhost, and known hosting subdomains.
+      // Netlify is our production host; some mobile browsers send an Origin
+      // header even for same-origin requests, so this must include it.
       if (
         allowedOrigins.includes(origin) ||
+        origin.endsWith('.netlify.app') ||
         origin.endsWith('.vercel.app') ||
         origin.endsWith('.railway.app')
       ) {
